@@ -5,13 +5,18 @@ lazy val commonSettings = Seq(
   version := "0.0.1",
   scalaVersion := "2.11.7",
 
-  libraryDependencies ++= Seq(
-    "org.specs2" %% "specs2-core" % "3.7" % "test"
-  ),
-
   scalacOptions ++= Seq("-feature", "-language:_", "-unchecked", "-deprecation", "-encoding", "utf8"),
-  scalacOptions in Test ++= Seq("-Yrangepos")
+  scalacOptions in Test ++= Seq("-Yrangepos"),
+
+  fork in run := true
 )
 
-lazy val sandbox = project.in(file("sandbox")).
-  settings(commonSettings: _*)
+lazy val sandbox = (project in file("sandbox")).
+  settings(commonSettings: _*).
+  settings(
+    name := "Sandbox",
+    libraryDependencies ++= Seq(
+      "org.specs2" %% "specs2-core" % "3.7" % "test"
+    )
+  )
+
