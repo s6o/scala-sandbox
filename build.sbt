@@ -29,3 +29,13 @@ lazy val sentiment_analyzer = (project in file("sentiment-analyzer")).
     libraryDependencies += "edu.stanford.nlp" % "stanford-corenlp" % "3.5.2" artifacts (Artifact("stanford-corenlp", "models"), Artifact("stanford-corenlp")),
     libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test"
   )
+
+lazy val akka_word_counter = (project in file("akka-word-counter")).
+  settings(commonSettings: _*).
+  settings(
+    name := "akk-word-counter",
+    description := "A demo app to count number of words in a file using Akka Actors",
+
+    libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.1"
+  )
+
