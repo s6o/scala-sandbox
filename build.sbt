@@ -20,3 +20,12 @@ lazy val sandbox = (project in file("sandbox")).
     )
   )
 
+lazy val sentiment_analyzer = (project in file("sentiment-analyzer")).
+  settings(commonSettings: _*).
+  settings(
+    name := "sentiment-analyzer",
+    description := "A demo app to showcase sentiment analysis using Standford CoreNLP and Scala",
+
+    libraryDependencies += "edu.stanford.nlp" % "stanford-corenlp" % "3.5.2" artifacts (Artifact("stanford-corenlp", "models"), Artifact("stanford-corenlp")),
+    libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+  )
