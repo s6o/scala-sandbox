@@ -33,7 +33,7 @@ lazy val sentiment_analyzer = (project in file("sentiment-analyzer")).
 lazy val akka_word_counter = (project in file("akka-word-counter")).
   settings(commonSettings: _*).
   settings(
-    name := "akk-word-counter",
+    name := "akka-word-counter",
     description := "A demo app to count number of words in a file using Akka Actors",
 
     libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.1"
