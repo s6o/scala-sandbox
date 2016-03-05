@@ -39,3 +39,13 @@ lazy val akka_word_counter = (project in file("akka-word-counter")).
     libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.1"
   )
 
+lazy val fp_in_scala = (project in file("fp-in-scala")).
+  settings(commonSettings: _*).
+  settings(
+    name := "fp-in-scala",
+    description := "Functional Programming in Scala",
+    libraryDependencies ++= Seq(
+      "org.specs2" %% "specs2-core" % "3.7" % "test"
+    )
+  )
+
