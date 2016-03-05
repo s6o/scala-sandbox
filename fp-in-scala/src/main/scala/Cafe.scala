@@ -1,17 +1,19 @@
 case class CreditCard(number: Long, cvv: Long, balance: Long)
 
 case class Charge(cc: CreditCard, amount: Long) {
-  def combine(other: Charge): Charge = {
+  def combine(other: Charge): Option[Charge] = {
     if (cc == other.cc) {
-      Charge(cc, amount + other.amount)
+      Some(Charge(cc, amount + other.amount))
     } else {
-      throw new Exception("Can't combine charge to different cards")
+      None
     }
   }
 }
 
 object Payments {
-  private def coalesce(charges: List[Charge]): List[Charge] = charges.groupBy(_.cc).values.map(_.reduce(_ combine _)).toList
+  private def coalesce(charges: List[Charge]): List[Charge] = charges.groupBy(_.cc).values.map(
+      _.reduce((c1, c2) => c1.combine(c2) match { case Some(c) => c case _ => Charge(c1.cc, 0) })
+    ).toList
 
   def process(charge: Charge): CreditCard = {
     charge.cc.copy(balance = charge.cc.balance - charge.amount)
@@ -34,7 +36,7 @@ class Cafe {
   def buyCoffees(cc: CreditCard, n: Int): (List[Coffee], Charge) = {
     val purchases: List[(Coffee, Charge)] = List.fill(n)(buyCoffee(cc))
     val (coffees, charges) = purchases.unzip
-    (coffees, charges.reduce((c1, c2) => c1.combine(c2)))
+    (coffees, charges.reduce((c1, c2) => c1.combine(c2) match { case Some(c) => c case _ => Charge(c1.cc, 0) } ))
   }
 
 }
