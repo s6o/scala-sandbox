@@ -10,10 +10,14 @@ case class Charge(cc: CreditCard, amount: Long) {
   }
 }
 
-case class Payments() {
-  def process(cc: CreditCard, charge: Charge): CreditCard = {
-    cc.copy(balance = cc.balance - charge.amount)
+object Payments {
+  private def coalesce(charges: List[Charge]): List[Charge] = charges.groupBy(_.cc).values.map(_.reduce(_ combine _)).toList
+
+  def process(charge: Charge): CreditCard = {
+    charge.cc.copy(balance = charge.cc.balance - charge.amount)
   }
+
+  def processBatch(charges: List[Charge]): List[CreditCard] = coalesce(charges).map(process(_))
 }
 
 case class Coffee() {
