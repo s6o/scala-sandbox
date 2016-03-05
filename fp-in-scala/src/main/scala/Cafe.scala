@@ -1,26 +1,18 @@
-case class CreditCard(number: Long, cvv: Long) {
-  private var currentBalance: Long = 0L
+case class CreditCard(number: Long, cvv: Long, balance: Long)
 
-  def balance: Long = currentBalance
-
-  def update(balance: Long): Unit = {
-    currentBalance = balance
+case class Charge(cc: CreditCard, amount: Long) {
+  def combine(other: Charge): Charge = {
+    if (cc == other.cc) {
+      Charge(cc, amount + other.amount)
+    } else {
+      throw new Exception("Can't combine charge to different cards")
+    }
   }
 }
 
 case class Payments() {
-  def charge(cc: CreditCard, coffee: Coffee): Unit = {
-    /*
-    Given the case class below:
-      case class CreditCard(number: Long, cvv: Long, balance: Long)
-
-    We' could do:
-      cc.copy(balance = cc.balance - coffee.price)
-
-    and return a new immutable instance of CreditCard, but given that the buyCoffee in listing 1.2.
-    only calls Payments::charge and does not keep the returned value this is not an option
-    */
-    cc.update(cc.balance - coffee.price)
+  def process(cc: CreditCard, charge: Charge): CreditCard = {
+    cc.copy(balance = cc.balance - charge.amount)
   }
 }
 
@@ -30,10 +22,9 @@ case class Coffee() {
 
 class Cafe {
 
-  def buyCoffee(cc: CreditCard, p: Payments): Coffee = {
+  def buyCoffee(cc: CreditCard): (Coffee, Charge) = {
     val cup = new Coffee()
-    p.charge(cc, cup)
-    cup
+    (cup, Charge(cc, cup.price))
   }
 
 }

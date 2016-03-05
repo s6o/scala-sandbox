@@ -4,10 +4,12 @@ class CafeTest extends Specification {
 
   "Cafe#buyCoffee" should {
     "decrement Credit Card balance" in {
-      val cc = CreditCard(1234567812345678L, 111L)
       val cafe = new Cafe()
-      cafe.buyCoffee(cc, Payments())
-      cc.balance must beEqualTo(-100L)
+      val cc1 = CreditCard(1234567812345678L, 111L, 0L)
+      val (coffee, charge) = cafe.buyCoffee(cc1)
+      val cc2 = Payments().process(cc1, charge)
+
+      cc2.balance must beEqualTo(-100L)
     }
   }
 
