@@ -12,4 +12,28 @@ object Hof {
     loop(0)
   }
 
+  def isSorted[A](a: Array[A], ordered: (A, A) => Boolean): Boolean = {
+    /*
+    // looks like an incorrect implementation, tests fail
+    // line 137, https://github.com/fpinscala/fpinscala/blob/master/answers/src/main/scala/fpinscala/gettingstarted/GettingStarted.scala
+    @annotation.tailrec
+    def go(n: Int): Boolean =
+      if (n >= a.length-1) true
+      else if (ordered(a(n), a(n+1))) false
+      else go(n+1)
+
+    go(0)
+    */
+    @annotation.tailrec
+    def loop(index: Int): Boolean = {
+      index match {
+        case _ if a.isEmpty => false
+        case i if i >= a.length - 1 => true
+        case i if ordered(a(i), a(i + 1)) => loop(i + 1)
+        case _ => false
+      }
+    }
+    loop(0)
+  }
+
 }
