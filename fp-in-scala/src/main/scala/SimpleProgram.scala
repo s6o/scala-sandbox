@@ -19,13 +19,13 @@ object SimpleProgram {
     }
   }
 
-  private def formatAbs(x: Int): String = {
-    val msg = "The absolute value of %d is %d"
-    msg.format(x, abs(x))
+  private def formatResult(name: String, n: Int, f: Int => Int) = {
+    val msg = "The %s of %d is %d."
+    msg.format(name, n, f(n))
   }
 
   def main(args: Array[String]): Unit = {
-    println(formatAbs(-42))
+    println(formatResult("absolute value", -42, factorial))
   }
 
 }
