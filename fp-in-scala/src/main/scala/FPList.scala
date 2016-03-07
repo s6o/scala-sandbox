@@ -18,4 +18,10 @@ object FPList {
   def apply[A](args: A*): FPList[A] =
     if (args.isEmpty) FPNil else Cons(args.head, apply(args.tail: _*))
 
+  def tail[A](l: FPList[A]): Option[FPList[A]] = {
+    l match {
+      case FPNil => None
+      case Cons(_, t) => Some(t)
+    }
+  }
 }
