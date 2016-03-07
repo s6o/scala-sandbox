@@ -22,4 +22,20 @@ class FPListTest extends Specification {
     }
   }
 
+  "FPList#setHead" should {
+    "return FPList(head) for an empty list" in {
+      val l = FPNil
+      val expected = FPList[Int](8)
+      val result = FPList.setHead(l, 8)
+      result must beEqualTo(expected)
+    }
+
+    "return FPList(new_head, tail) for a non-empty list" in {
+      val l = FPList[Int](8, 6, 4, 2)
+      val expected = FPList[Int](10, 6, 4, 2)
+      val result = FPList.setHead(l, 10)
+      result must beEqualTo(expected)
+    }
+  }
+
 }

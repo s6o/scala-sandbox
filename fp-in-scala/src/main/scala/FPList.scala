@@ -24,4 +24,11 @@ object FPList {
       case Cons(_, t) => Some(t)
     }
   }
+
+  def setHead[A](l: FPList[A], head: A): FPList[A] = {
+    l match {
+      case FPNil => FPList(head)
+      case Cons(_, t) => Cons(head, t)
+    }
+  }
 }
