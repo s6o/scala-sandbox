@@ -38,4 +38,21 @@ class FPListTest extends Specification {
     }
   }
 
+  "FPList#drop" should {
+    "throw an IllegalArgumentException for n < 0" in {
+      FPList.drop(FPNil, -1) must throwA[IllegalArgumentException]
+    }
+
+    "return None for an empty list or list.size < n" in {
+      val l = FPNil
+      FPList.drop(l, 1) must beEqualTo(None)
+    }
+
+    "return a Option[FPList[A]] with n elements removed from head" in {
+      val l = FPList[Int](1, 3, 4, 6, 8)
+      val expectedEven = FPList[Int](4, 6, 8)
+      FPList.drop(l, 2) must beEqualTo(Some(expectedEven))
+    }
+  }
+
 }

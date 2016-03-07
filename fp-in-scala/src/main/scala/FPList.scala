@@ -31,4 +31,13 @@ object FPList {
       case Cons(_, t) => Cons(head, t)
     }
   }
+
+  def drop[A](l: FPList[A], n: Int): Option[FPList[A]] = {
+    if (n < 0) throw new IllegalArgumentException("Invalid n value, required n > 0")
+    l match {
+      case FPNil => None
+      case Cons(_, t) if n > 0 => drop(t, n - 1)
+      case l => Some(l)
+    }
+  }
 }
