@@ -2,6 +2,12 @@ import org.specs2.mutable._
 
 class FPListTest extends Specification {
 
+  "FPList#append" should {
+    "append 2nd FPList[A] to 1st FPList[A]" in {
+      FPList.append[Int](FPList(1, 2), FPList(3, 4)) must beEqualTo(FPList[Int](1, 2, 3, 4))
+    }
+  }
+
   "FPList#tail" should {
     "return None for ane empty list" in {
       val l = FPNil
