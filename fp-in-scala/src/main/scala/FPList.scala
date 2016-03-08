@@ -40,4 +40,29 @@ object FPList {
       case l => Some(l)
     }
   }
+
+  def dropWhile[A](l: FPList[A], f: A => Boolean): FPList[A] = l match {
+    case Cons(h, t) if f(h) => dropWhile(t, f)
+    case _ => l
+  }
+
+  def reverse[A](l: FPList[A]): FPList[A] = {
+    @annotation.tailrec
+    def loop(res: FPList[A], input: FPList[A]): FPList[A] = input match {
+      case Cons(h, t) => loop(Cons(h, res), t)
+      case _ => res
+    }
+    loop(FPNil, l)
+  }
+
+  def filter[A](l: FPList[A], f: A => Boolean): FPList[A] = {
+    @annotation.tailrec
+    def collect(resList: FPList[A], inputList: FPList[A], f: A => Boolean): (FPList[A], FPList[A]) = inputList match {
+        case Cons(h, t) if f(h) => collect(Cons(h, resList), t, f)
+        case Cons(h, t) => collect(resList, t, f)
+        case _ => (resList, inputList)
+    }
+    val (result, _) = collect(FPNil, l, f)
+    reverse(result)
+  }
 }
