@@ -2,6 +2,10 @@ import org.specs2.mutable._
 
 class FPListTest extends Specification {
 
+  val inputListInit = FPList[Int](List.range(1, 1000, 1):_*)
+  val expectedListInit = FPList[Int](List.range(1, 999, 1):_*)
+
+
   "FPList#append" should {
     "append 2nd FPList[A] to 1st FPList[A]" in {
       FPList.append[Int](FPList(1, 2), FPList(3, 4)) must beEqualTo(FPList[Int](1, 2, 3, 4))
@@ -97,4 +101,17 @@ class FPListTest extends Specification {
     }
   }
 
+  "FPList#initBookVersion" should {
+    "return a list of N - 1 elements for non-empty input list" in {
+      val result = FPTimer.measureIn(FPTimer.Nano("initBookVersion"), { FPList.initBookVersion[Int](inputListInit) })
+      result must beEqualTo(expectedListInit)
+    }
+  }
+
+  "FPList#init" should {
+   "return a list of N - 1 elements for non-empty input list" in {
+      val result = FPTimer.measureIn(FPTimer.Nano("FPList.init"), { FPList.init[Int](inputListInit) })
+      result must beEqualTo(expectedListInit)
+    }
+  }
 }

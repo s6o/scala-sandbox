@@ -70,4 +70,21 @@ object FPList {
     val (result, _) = collect(FPNil, l, f)
     reverse(result)
   }
+
+  def init[A](l: FPList[A]): FPList[A] = {
+    @annotation.tailrec
+    def collect(resList: FPList[A], inputList: FPList[A]): (FPList[A], FPList[A]) = inputList match {
+      case FPNil => (FPNil, FPNil)
+      case Cons(h, FPNil) => (resList, inputList)
+      case Cons(h, t) => collect(Cons(h, resList), t)
+    }
+    val (result, _) = collect(FPNil, l)
+    reverse(result)
+  }
+
+  def initBookVersion[A](l: FPList[A]): FPList[A] = l match {
+    case FPNil => sys.error("init of empty list")
+    case Cons(_, FPNil) => FPNil
+    case Cons(h, t) => Cons(h, init(t))
+  }
 }
