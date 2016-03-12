@@ -49,3 +49,19 @@ lazy val fp_in_scala = (project in file("fp-in-scala")).
     )
   )
 
+lazy val spray_can_http = (project in file("spray-can-http")).
+  settings(commonSettings: _*).
+  settings(
+    name := "spray-can-http",
+    description := "Simple HTTP server example from Spray examples",
+    libraryDependencies ++= {
+      val akkaV = "2.4.2"
+      val sprayV = "1.3.3"
+      Seq(
+        "io.spray"            %%  "spray-can"     % sprayV,
+        "io.spray"            %%  "spray-routing" % sprayV,
+        "com.typesafe.akka"   %%  "akka-actor"    % akkaV
+      )
+    }
+  )
+
