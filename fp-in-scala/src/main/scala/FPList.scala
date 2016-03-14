@@ -32,6 +32,12 @@ object FPList {
 
   def length[A](as: FPList[A]): Int = foldRight[A, Int](as, 0)((_, c) => c + 1)
 
+  def sum3(ns: FPList[Int]): Int = foldLeft(ns, 0)((x, y) => x + y)
+
+  def product3(ns: FPList[Double]): Double = foldLeft(ns, 1.0)((x, y) => x * y)
+
+  def length2[A](as: FPList[A]): Int = foldLeft(as, 0)((c, _) => c + 1)
+
   def apply[A](args: A*): FPList[A] =
     if (args.isEmpty) FPNil else Cons(args.head, apply(args.tail: _*))
 
