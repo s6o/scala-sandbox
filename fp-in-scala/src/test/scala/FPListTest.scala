@@ -114,4 +114,14 @@ class FPListTest extends Specification {
       result must beEqualTo(expectedListInit)
     }
   }
+
+  "FPList#length" should {
+    "return 0 for FPNil" in {
+      FPList.length(FPNil:FPList[Int]) must beEqualTo(0)
+    }
+
+    "return N for a FPList[A] of N elements" in {
+      FPList.length(FPList[Int](4, 3, 2, 8)) must beEqualTo(4)
+    }
+  }
 }

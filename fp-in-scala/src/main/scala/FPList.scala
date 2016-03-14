@@ -24,6 +24,8 @@ object FPList {
 
   def product2(ns: FPList[Double]): Double = foldRight(ns, 1.0)((x, y) => x * y)
 
+  def length[A](as: FPList[A]): Int = foldRight[A, Int](as, 0)((_, c) => c + 1)
+
   def apply[A](args: A*): FPList[A] =
     if (args.isEmpty) FPNil else Cons(args.head, apply(args.tail: _*))
 
