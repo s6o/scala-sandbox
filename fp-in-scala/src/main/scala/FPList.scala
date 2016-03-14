@@ -21,10 +21,15 @@ object FPList {
     case Cons(h,t) => foldLeft(t, f(z,h))(f)
   }
 
+  // I failed...
+  def foldLeftR[A, B](as: FPList[A], z: B)(f: (B, A) => B): B = ???
+
   def foldRight[A, B](as: FPList[A], z: B)(f: (A, B) => B): B = as match {
     case FPNil => z
     case Cons(h, t) => f(h, foldRight(t, z)(f))
   }
+
+  def foldRightL[A, B](as: FPList[A], z: B)(f: (A, B) => B): B = foldLeft(reverse(as), z)((b, a) => f(a, b))
 
   def sum2(ns: FPList[Int]): Int = foldRight(ns, 0)((x, y) => x + y)
 
