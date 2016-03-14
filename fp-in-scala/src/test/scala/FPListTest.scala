@@ -124,4 +124,10 @@ class FPListTest extends Specification {
       FPList.length(FPList[Int](4, 3, 2, 8)) must beEqualTo(4)
     }
   }
+
+  "FPList#foldLeft" should {
+    "return 0 for an initial value of 6 and a FPList[Int](1, 2, 3)" in {
+      FPList.foldLeft(FPList[Int](1, 2, 3), 6)((x, y) => x - y) must beEqualTo(0)
+    }
+  }
 }

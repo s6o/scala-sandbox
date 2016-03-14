@@ -15,6 +15,12 @@ object FPList {
     case Cons(h, t) => h * product(t)
   }
 
+  @annotation.tailrec
+  def foldLeft[A,B](l: FPList[A], z: B)(f: (B, A) => B): B = l match {
+    case FPNil => z
+    case Cons(h,t) => foldLeft(t, f(z,h))(f)
+  }
+
   def foldRight[A, B](as: FPList[A], z: B)(f: (A, B) => B): B = as match {
     case FPNil => z
     case Cons(h, t) => f(h, foldRight(t, z)(f))
