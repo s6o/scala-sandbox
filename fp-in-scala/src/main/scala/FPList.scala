@@ -15,6 +15,15 @@ object FPList {
     case Cons(h, t) => h * product(t)
   }
 
+  def foldRight[A, B](as: FPList[A], z: B)(f: (A, B) => B): B = as match {
+    case FPNil => z
+    case Cons(h, t) => f(h, foldRight(t, z)(f))
+  }
+
+  def sum2(ns: FPList[Int]): Int = foldRight(ns, 0)((x, y) => x + y)
+
+  def product2(ns: FPList[Double]): Double = foldRight(ns, 1.0)((x, y) => x * y)
+
   def apply[A](args: A*): FPList[A] =
     if (args.isEmpty) FPNil else Cons(args.head, apply(args.tail: _*))
 
