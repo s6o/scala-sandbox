@@ -83,6 +83,10 @@ object FPList {
     loop(FPNil, l)
   }
 
+  def reverse2[A](as: FPList[A]): FPList[A] = foldRight[A, FPList[A]](as, FPNil)((h, z) => append(z, FPList[A](h)))
+
+  def reverse3[A](as: FPList[A]): FPList[A] = foldLeft[A, FPList[A]](as, FPNil)((z, h) => Cons(h, z))
+
   def filter[A](l: FPList[A], f: A => Boolean): FPList[A] = {
     @annotation.tailrec
     def collect(resList: FPList[A], inputList: FPList[A], f: A => Boolean): (FPList[A], FPList[A]) = inputList match {
