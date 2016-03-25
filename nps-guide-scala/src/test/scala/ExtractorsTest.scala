@@ -16,8 +16,15 @@ class ExtractorsTest extends Specification {
 
   "User#greetWithFirstName" should {
     "create a greeting based on first given name" in {
-      val greeting = new PremiumUser("James Doe Smith", 100).greetWithFirstName()
+      val greeting = new PremiumUser("James Doe Smith", 100).greetWithFirstName
       greeting must beEqualTo("Hi James!")
+    }
+  }
+
+  "Uses#greet" should {
+    "create greeting with first and second given names" in {
+      val greeting = new PremiumUser("Jane Doe", 100).greet
+      greeting must beEqualTo("Hi Jane Doe!")
     }
   }
 
