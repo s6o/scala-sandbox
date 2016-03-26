@@ -1,3 +1,6 @@
+import scala.util.Try
+import java.net.URL
+
 case class Customer(age: Int)
 class Cigarettes
 case class UnderAgeException(message: String) extends Exception(message)
@@ -19,5 +22,10 @@ object ErrorHandling {
       case UnderAgeException(msg) => msg
     }
   }
+
+  def parseUrl(url: String): Try[URL] = Try(new URL(url))
+
+  def stdinUrl(): Try[URL] =
+    parseUrl(scala.io.StdIn.readLine()).getOrElse[Try[URL]](parseUrl("http://duckduck.go"))
 
 }
