@@ -11,4 +11,13 @@ object ErrorHandling {
       new Cigarettes
     }
 
+  def cigarettesBuyMessage(customer: Customer): String = {
+    try {
+      buyCigarettes(customer)
+      "Yo, here are your cancer sticks! Happy smokin'!"
+    } catch {
+      case UnderAgeException(msg) => msg
+    }
+  }
+
 }
