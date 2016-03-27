@@ -2,6 +2,8 @@ import scala.io.Source
 import scala.util.Try
 import java.io.InputStream
 import java.net.URL
+import java.net.MalformedURLException
+import java.io.FileNotFoundException
 
 case class Customer(age: Int)
 class Cigarettes
@@ -50,4 +52,13 @@ object ErrorHandling {
       is <- urlInputStream(url)
       source = Source.fromInputStream(is)
     } yield source.getLines()
+
+  def altContents(url: String): Try[Iterator[String]] = getUrlContents(url) recover {
+    case e: FileNotFoundException =>
+      Iterator("Requested page does not exist")
+    case e: MalformedURLException =>
+      Iterator("Please make sure to enter a valid URL")
+    case _ =>
+      Iterator("An unexpected error has occurred")
+  }
 }
