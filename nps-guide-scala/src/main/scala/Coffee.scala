@@ -33,4 +33,15 @@ object Coffee {
     foam <- Try(frothMilk("milk"))
   } yield combine(espresso, foam)
 
+  def main(args: Array[String]): Unit = {
+    println("Making a cappuccino ...")
+
+    val result = Coffee.prepareCappuccino()
+    if (result.isSuccess) {
+      println(result.get)
+    } else {
+      println(result.failed.get.getMessage)
+    }
+  }
+
 }
