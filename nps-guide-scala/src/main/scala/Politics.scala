@@ -4,6 +4,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
 case class TaxCut(reduction: Int)
+case class LameExcuse(msg: String) extends Exception(msg)
 
 object Goverment {
 
@@ -15,8 +16,8 @@ object Goverment {
     Future {
       println("Starting the new legislative period.")
       Thread.sleep(2000)
-      p.success(TaxCut(20))
-      println("We reduced the taxes! You must reelect us!")
+      p.failure(LameExcuse("global economy crisis"))
+      println("We didn't fulfill our promises, so what?")
     }
     p.future
   }
