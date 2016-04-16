@@ -6,9 +6,7 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.11.7",
 
   scalacOptions ++= Seq("-feature", "-language:_", "-unchecked", "-deprecation", "-encoding", "utf8"),
-  scalacOptions in Test ++= Seq("-Yrangepos"),
-
-  fork in run := true
+  scalacOptions in Test ++= Seq("-Yrangepos")
 )
 
 lazy val sandbox = (project in file("sandbox")).
