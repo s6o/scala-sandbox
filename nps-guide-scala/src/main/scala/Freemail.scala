@@ -3,18 +3,21 @@ case class Email(subject: String, text: String, sender: String, recipient: Strin
 object Freemail {
 
   type EmailFilter = Email => Boolean
+  type SizeChecker = Int => Boolean
 
   def newMailsForUser(mails: Seq[Email], f: EmailFilter): Seq[Email] = mails.filter(f)
 
   val sentByOneOf: Set[String] => EmailFilter = senders => email => senders.contains(email.sender)
   val notSentByAnyOf: Set[String] => EmailFilter = senders => email => !senders.contains(email.sender)
-  val minimumSize: Int => EmailFilter = n => email => email.text.size >= n
-  val maximumSize: Int => EmailFilter = n => email => email.text.size <= n
+  val sizeConstraint: SizeChecker => EmailFilter = f => email => f(email.text.size)
+  val minimumSize: Int => EmailFilter = n => sizeConstraint(_ >= n)
+  val maximumSize: Int => EmailFilter = n => sizeConstraint(_ >= n)
 
   def createSentByOneOfFilter(senders: Set[String]): EmailFilter = email => senders.contains(email.sender)
   def createNotSentByOneOfFilter(senders: Set[String]): EmailFilter = email => senders.contains(email.sender)
-  def createMinimumSizeFilter(n: Int): EmailFilter = email => email.text.size >= n
-  def createMaximumSizeFilter(n: Int): EmailFilter = email => email.text.size <= n
+  def createSizeConstraintFilter(f: SizeChecker): EmailFilter = email => f(email.text.size)
+  def createMinimumSizeFilter(n: Int): EmailFilter = createSizeConstraintFilter(_ >= n)
+  def createMaximumSizeFilter(n: Int): EmailFilter = createSizeConstraintFilter(_ <= n)
 
   def main(args: Array[String]): Unit = {
 
