@@ -18,26 +18,33 @@ object Freemail {
   val minimumSize: Int => EmailFilter = n => sizeConstraint(_ >= n)
   val maximumSize: Int => EmailFilter = n => sizeConstraint(_ >= n)
 
-  def createSentByOneOfFilter(senders: Set[String]): EmailFilter = email => senders.contains(email.sender)
-  def createNotSentByOneOfFilter(senders: Set[String]): EmailFilter = email => senders.contains(email.sender)
-  def createSizeConstraintFilter(f: SizeChecker): EmailFilter = email => f(email.text.length)
-  def createMinimumSizeFilter(n: Int): EmailFilter = createSizeConstraintFilter(_ >= n)
-  def createMaximumSizeFilter(n: Int): EmailFilter = createSizeConstraintFilter(_ <= n)
+  val addMissingSubject: Email => Email =
+    (email: Email) => if (email.subject.isEmpty) email.copy(subject = "No subject") else email
+  val spellChecking: Email => Email =
+    (email: Email) => email.copy(text = email.text.replaceAll("your", "you're"))
+  val removeInappropriateLanguage: Email => Email =
+    (email: Email) => email.copy(text = email.text.replaceAll("dynamic typing", "**CENSORED**"))
+  val addAdvertisementToFooter: Email => Email =
+    (email: Email) => email.copy(text = email.text + "\nThis mail set via Super Awesome Free Mail")
 
   def main(args: Array[String]): Unit = {
 
     val filter: EmailFilter = every(
-      notSentByAnyOf(Set("johndoe@example.com")),
-      minimumSize(100),
-      maximumSize(10000)
+      sentByOneOf(Set("johndoe@example.com"))
     )
+    val pipeline: Email => Email = Function.chain(Seq(
+      addMissingSubject,
+      spellChecking,
+      removeInappropriateLanguage,
+      addAdvertisementToFooter
+    ))
     val mails = Email(
       subject = "It's me again, your stalker friend!",
       text = "Hello my friend! How are you?",
       sender = "johndoe@example.com",
       recipient = "me@example.com") :: Nil
 
-    val result = newMailsForUser(mails, filter)
+    val result = newMailsForUser(mails.map(pipeline(_)), filter)
 
     println(result)
   }
