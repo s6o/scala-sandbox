@@ -1,4 +1,35 @@
+import Freemail.EmailFilter
+
 case class Email(subject: String, text: String, sender: String, recipient: String)
+
+case class EmailUser(name: String)
+
+trait EmailRepository {
+  def getMails(user: EmailUser, unread: Boolean): Seq[Email]
+}
+
+trait FilterRepository {
+  def getEmailFilter(user: EmailUser): EmailFilter
+}
+
+trait MailboxService {
+  def getNewMails(emailRepo: EmailRepository)(filterRepo: FilterRepository)(user: EmailUser): Seq[Email] =
+    emailRepo.getMails(user, true).filter(filterRepo.getEmailFilter(user))
+
+  val newMails: EmailUser => Seq[Email]
+}
+
+object MockEmailRepository extends EmailRepository {
+  def getMails(user: EmailUser, unread: Boolean): Seq[Email] = Nil
+}
+
+object MockFilterRepository extends FilterRepository {
+  def getEmailFilter(user: EmailUser): EmailFilter = _ => true
+}
+
+object MailboxServiceWithMockDeps extends MailboxService {
+  val newMails: (EmailUser) => Seq[Email] = getNewMails(MockEmailRepository)(MockFilterRepository) _
+}
 
 object Freemail {
 
@@ -40,6 +71,9 @@ object Freemail {
 
   val min20ca: Email => Boolean = sizeConstraintFn(ge)(20)
   val max20ca: Email => Boolean = sizeConstraintFn(le)(20)
+
+  val sum: (Int, Int) => Int = _ + _
+  val sumCurried: Int => Int => Int = sum.curried
 
   val sentByOneOf: Set[String] => EmailFilter = senders => email => senders.contains(email.sender)
   val notSentByAnyOf: Set[String] => EmailFilter = sentByOneOf.andThen(g => complement(g))
