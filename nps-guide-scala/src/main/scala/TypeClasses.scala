@@ -25,15 +25,17 @@ object NumberLike {
 object Statistics {
   import Math.NumberLike
 
-  def mean[T](xs: Vector[T])(implicit ev: NumberLike[T]): T = ev.divide(xs.reduce(ev.plus), xs.size)
+  def mean[T : NumberLike](xs: Vector[T]): T =
+    implicitly[NumberLike[T]].divide(xs.reduce(implicitly[NumberLike[T]].plus), xs.size)
 
-  def median[T](xs: Vector[T])(implicit ev: NumberLike[T]): T = xs(xs.size / 2)
+  def median[T : NumberLike](xs: Vector[T]): T = xs(xs.size / 2)
 
-  def quartiles[T](xs: Vector[T])(implicit ev: NumberLike[T]): (T, T, T) =
+  def quartiles[T : NumberLike](xs: Vector[T]): (T, T, T) =
     (xs(xs.size / 4), median[T](xs), xs(xs.size / 4 * 3))
 
-  def iqr[T](xs: Vector[T])(implicit ev: NumberLike[T]): T = quartiles(xs) match {
-    case (lowerQuartile, _, upperQuartile) => ev.minus(upperQuartile, lowerQuartile)
+  def iqr[T : NumberLike](xs: Vector[T]): T = quartiles(xs) match {
+    case (lowerQuartile, _, upperQuartile) =>
+      implicitly[NumberLike[T]].minus(upperQuartile, lowerQuartile)
   }
 
   def main(args: Array[String]): Unit = {
