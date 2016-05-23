@@ -22,6 +22,17 @@ object NumberLike {
   }
 }
 
+object JodaImplicits {
+  import Math.NumberLike
+  import org.joda.time.Duration
+
+  implicit object NumberLikeDuration extends NumberLike[Duration] {
+    def plus(x: Duration, y: Duration): Duration = x.plus(y)
+    def divide(x: Duration, y: Int): Duration = Duration.millis(x.getMillis / y)
+    def minus(x: Duration, y: Duration): Duration = x.minus(y)
+  }
+}
+
 object Statistics {
   import Math.NumberLike
 
@@ -39,8 +50,23 @@ object Statistics {
   }
 
   def main(args: Array[String]): Unit = {
-    import NumberLike._
-    val numbers = Vector[Double](13, 23.0, 42, 45, 61, 73, 96, 100, 199, 420, 900, 3839)
-    println(Statistics.mean(numbers))
+    import JodaImplicits._
+    import org.joda.time.Duration._
+
+    val numbers = Vector(
+      standardSeconds(20),
+      standardSeconds(57),
+      standardSeconds(2),
+      standardSeconds(17),
+      standardSeconds(30),
+      standardSeconds(58),
+      standardSeconds(2),
+      standardSeconds(5),
+      standardSeconds(8),
+      standardSeconds(17),
+      standardSeconds(1),
+      standardSeconds(4)
+    )
+    println(Statistics.mean(numbers).getStandardHours)
   }
 }

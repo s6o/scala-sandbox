@@ -69,7 +69,8 @@ lazy val nps_guide_scala = (project in file("nps-guide-scala")).
     name := "nps-guide-scala",
     description := "Examples/exercises from The Neophyte's Guide to Scala",
     libraryDependencies ++= Seq(
-      "org.specs2" %% "specs2-core" % "3.7" % "test"
+      "org.specs2" %% "specs2-core" % "3.7" % "test",
+      "joda-time" % "joda-time" % "2.1"
     )
   )
 
