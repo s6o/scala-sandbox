@@ -15,13 +15,18 @@ case object CappuccinoRequest extends CoffeeRequest
 case object EspressoRequest extends CoffeeRequest
 
 class Barista extends Actor {
+  var cappuccinoCount: Int = 0
+  var espressoCount: Int = 0
+
   def receive: PartialFunction[Any, Unit] = {
     case CappuccinoRequest =>
       sender ! Bill(250)
-      println("I have to prepare a cappuccino")
+      cappuccinoCount += 1
+      println(s"I have to prepare a cappuccino #$cappuccinoCount")
     case EspressoRequest =>
       sender ! Bill(200)
-      println("Let's prepare an espresso")
+      espressoCount += 1
+      println(s"Let's prepare an espresso: #$espressoCount")
     case ClosingTime =>
       context.system.shutdown()
   }
