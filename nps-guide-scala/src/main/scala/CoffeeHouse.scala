@@ -1,59 +1,92 @@
-import akka.actor.{Actor, ActorSystem}
-import akka.actor.{ActorRef, Props}
-import akka.pattern.ask
-import akka.util.Timeout
+import CafeCustomer.CaffeineWithdrawalWarning
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 
-import scala.concurrent.Future
-import scala.concurrent.duration._
+object Barista {
+  case object EspressoRequest
+  case object ClosingTime
+  case class EspressoCup(state: EspressoCup.State)
+  case class Receipt(amount: Int)
 
-case class Bill(cents: Int)
-case object ClosingTime
-case object CaffeineWithdrawalWarning
-
-sealed trait CoffeeRequest
-case object CappuccinoRequest extends CoffeeRequest
-case object EspressoRequest extends CoffeeRequest
-
-class Barista extends Actor {
-  var cappuccinoCount: Int = 0
-  var espressoCount: Int = 0
-
-  def receive: PartialFunction[Any, Unit] = {
-    case CappuccinoRequest =>
-      sender ! Bill(250)
-      cappuccinoCount += 1
-      println(s"I have to prepare a cappuccino #$cappuccinoCount")
-    case EspressoRequest =>
-      sender ! Bill(200)
-      espressoCount += 1
-      println(s"Let's prepare an espresso: #$espressoCount")
-    case ClosingTime =>
-      context.system.shutdown()
+  object EspressoCup {
+    sealed trait State
+    case object Clean extends State
+    case object Filled extends State
+    case object Dirty extends State
   }
 }
 
-class CafeCustomer(caffeineSource: ActorRef) extends Actor {
+object Register {
+  sealed trait Article
+  case object Espresso extends Article
+  case object Cappuccino extends Article
+  case class Transaction(article: Article)
+}
+
+object CafeCustomer {
+  case object CaffeineWithdrawalWarning
+}
+
+class Barista extends Actor {
+  import Barista._
+  import Register._
+  import EspressoCup._
+  import context.dispatcher
+  import akka.util.Timeout
+  import akka.pattern.ask
+  import akka.pattern.pipe
+  import concurrent.duration._
+
+  implicit val timeout = Timeout(2.seconds)
+  val register = context.actorOf(Props[Register], "Register")
+
+  def receive: PartialFunction[Any, Unit] = {
+    case EspressoRequest =>
+      val receipt = register ? Transaction(Espresso)
+      receipt.map((EspressoCup(Filled), _)).pipeTo(sender)
+    case ClosingTime =>
+      context.stop(self)
+  }
+}
+
+class Register extends Actor {
+  import Register._
+  import Barista._
+  var revenue = 0
+  val prices = Map[Article, Int](Espresso -> 150, Cappuccino -> 250)
+
+  def receive: PartialFunction[Any, Unit] = {
+    case Transaction(article) =>
+      val price = prices(article)
+      sender ! createReceipt(price)
+      revenue += price
+  }
+
+  def createReceipt(price: Int): Receipt = Receipt(price)
+}
+
+class CafeCustomer(coffeeSource: ActorRef) extends Actor with ActorLogging {
+  import CafeCustomer._
+  import Barista._
+  import EspressoCup._
+
   def receive: PartialFunction[Any, Unit] = {
     case CaffeineWithdrawalWarning =>
-      caffeineSource ! EspressoRequest
-    case Bill(cents) =>
-      println(s"I have to pay $cents cents, or else!")
+      coffeeSource ! EspressoRequest
+    case (EspressoCup(Filled), Receipt(amount)) =>
+      log.info(s"yay, caffeine for ${self}!")
   }
 }
 
 object CoffeeHouse extends App {
   val system = ActorSystem("CoffeeHouse")
   val barista: ActorRef = system.actorOf(Props[Barista], "Barista")
-  val customer: ActorRef = system.actorOf(Props(classOf[CafeCustomer], barista), "Customer")
 
-  implicit val timeout = Timeout(2.second)
-  implicit val ec = system.dispatcher
+  val customerJohnny = system.actorOf(Props(classOf[CafeCustomer], barista), "Johnny")
+  val customerAlina = system.actorOf(Props(classOf[CafeCustomer], barista), "Alina")
 
-  val f: Future[Any] = barista ? CappuccinoRequest
-  f.onSuccess {
-    case Bill(cents) => println(s"Will pay $cents cents for a cappuccino")
-  }
+  customerJohnny ! CaffeineWithdrawalWarning
+  customerAlina ! CaffeineWithdrawalWarning
 
-  customer ! CaffeineWithdrawalWarning
-  barista ! ClosingTime
+  Thread.sleep(5000)
+  system.shutdown()
 }
