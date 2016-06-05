@@ -1,5 +1,10 @@
 import akka.actor.{Actor, ActorSystem}
 import akka.actor.{ActorRef, Props}
+import akka.pattern.ask
+import akka.util.Timeout
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 case class Bill(cents: Int)
 case object ClosingTime
@@ -35,6 +40,14 @@ object CoffeeHouse extends App {
   val system = ActorSystem("CoffeeHouse")
   val barista: ActorRef = system.actorOf(Props[Barista], "Barista")
   val customer: ActorRef = system.actorOf(Props(classOf[CafeCustomer], barista), "Customer")
+
+  implicit val timeout = Timeout(2.second)
+  implicit val ec = system.dispatcher
+
+  val f: Future[Any] = barista ? CappuccinoRequest
+  f.onSuccess {
+    case Bill(cents) => println(s"Will pay $cents cents for a cappuccino")
+  }
 
   customer ! CaffeineWithdrawalWarning
   barista ! ClosingTime
