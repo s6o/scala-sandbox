@@ -1,7 +1,7 @@
 import Barista.ClosingTime
 import CafeCustomer.CaffeineWithdrawalWarning
 import ReceiptPrinter.PrintJob
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props, Terminated}
 import akka.pattern.AskTimeoutException
 
 object Barista {
@@ -56,7 +56,7 @@ class Barista extends Actor {
       } pipeTo(sender)
 
     case ClosingTime =>
-      context.system.shutdown()
+      context.stop(self)
   }
 }
 
@@ -123,6 +123,8 @@ class CafeCustomer(coffeeSource: ActorRef) extends Actor with ActorLogging {
   import Barista._
   import EspressoCup._
 
+  context.watch(coffeeSource)
+
   def receive: PartialFunction[Any, Unit] = {
     case CaffeineWithdrawalWarning =>
       coffeeSource ! EspressoRequest
@@ -130,6 +132,8 @@ class CafeCustomer(coffeeSource: ActorRef) extends Actor with ActorLogging {
       log.info(s"yay, caffeine for ${self}!")
     case ComeBackLater =>
       log.info("grumble, grumble")
+    case Terminated(_) =>
+      log.info("Oh well, let's find another coffee house")
   }
 }
 
@@ -146,4 +150,6 @@ object CoffeeHouse extends App {
 
   Thread.sleep(10000)
   barista ! ClosingTime
+  Thread.sleep(3000)
+  system.shutdown()
 }
