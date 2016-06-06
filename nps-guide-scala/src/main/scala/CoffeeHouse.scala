@@ -20,6 +20,7 @@ object Register {
   case object Espresso extends Article
   case object Cappuccino extends Article
   case class Transaction(article: Article)
+  class PaperJamException(msg: String) extends Exception(msg)
 }
 
 object CafeCustomer {
@@ -48,11 +49,16 @@ class Barista extends Actor {
   }
 }
 
-class Register extends Actor {
+class Register extends Actor with ActorLogging {
   import Register._
   import Barista._
   var revenue = 0
   val prices = Map[Article, Int](Espresso -> 150, Cappuccino -> 250)
+
+  override def postRestart(reason: Throwable): Unit = {
+    super.postRestart(reason)
+    log.info(s"Restarted because of ${reason.getMessage}")
+  }
 
   def receive: PartialFunction[Any, Unit] = {
     case Transaction(article) =>
@@ -61,7 +67,13 @@ class Register extends Actor {
       revenue += price
   }
 
-  def createReceipt(price: Int): Receipt = Receipt(price)
+  def createReceipt(price: Int): Receipt = {
+    import util.Random
+    if (Random.nextBoolean()) {
+      throw new PaperJamException("OMG, not again!")
+    }
+    Receipt(price)
+  }
 }
 
 class CafeCustomer(coffeeSource: ActorRef) extends Actor with ActorLogging {
@@ -86,7 +98,8 @@ object CoffeeHouse extends App {
 
   customerJohnny ! CaffeineWithdrawalWarning
   customerAlina ! CaffeineWithdrawalWarning
+  customerJohnny ! CaffeineWithdrawalWarning
 
-  Thread.sleep(5000)
+  Thread.sleep(7000)
   system.shutdown()
 }
