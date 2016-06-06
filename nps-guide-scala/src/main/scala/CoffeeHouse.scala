@@ -1,12 +1,15 @@
+import Barista.ClosingTime
 import CafeCustomer.CaffeineWithdrawalWarning
-import akka.actor.SupervisorStrategy.{Directive, Resume}
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, OneForOneStrategy, Props, SupervisorStrategy}
+import ReceiptPrinter.PrintJob
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import akka.pattern.AskTimeoutException
 
 object Barista {
   case object EspressoRequest
   case object ClosingTime
   case class EspressoCup(state: EspressoCup.State)
   case class Receipt(amount: Int)
+  case object ComeBackLater
 
   object EspressoCup {
     sealed trait State
@@ -21,6 +24,10 @@ object Register {
   case object Espresso extends Article
   case object Cappuccino extends Article
   case class Transaction(article: Article)
+}
+
+object ReceiptPrinter {
+  case class PrintJob(amount: Int)
   class PaperJamException(msg: String) extends Exception(msg)
 }
 
@@ -41,27 +48,31 @@ class Barista extends Actor {
   implicit val timeout = Timeout(2.seconds)
   val register = context.actorOf(Props[Register], "Register")
 
-  val decider: PartialFunction[Throwable, Directive] = {
-    case _: PaperJamException => Resume
-  }
-
-  override def supervisorStrategy: SupervisorStrategy =
-    OneForOneStrategy()(decider.orElse(SupervisorStrategy.defaultStrategy.decider))
-
   def receive: PartialFunction[Any, Unit] = {
     case EspressoRequest =>
       val receipt = register ? Transaction(Espresso)
-      receipt.map((EspressoCup(Filled), _)).pipeTo(sender)
+      receipt.map((EspressoCup(Filled), _)).recover {
+        case _: AskTimeoutException => ComeBackLater
+      } pipeTo(sender)
+
     case ClosingTime =>
-      context.stop(self)
+      context.system.shutdown()
   }
 }
 
 class Register extends Actor with ActorLogging {
-  import Register._
+  import akka.pattern.ask
+  import akka.pattern.pipe
+  import akka.util.Timeout
+  import context.dispatcher
+  import scala.concurrent.duration._
   import Barista._
+  import Register._
+
+  implicit val timeout = Timeout(2.seconds)
   var revenue = 0
   val prices = Map[Article, Int](Espresso -> 150, Cappuccino -> 250)
+  val printer = context.actorOf(Props[ReceiptPrinter], "Printer")
 
   override def postRestart(reason: Throwable): Unit = {
     super.postRestart(reason)
@@ -71,17 +82,39 @@ class Register extends Actor with ActorLogging {
   def receive: PartialFunction[Any, Unit] = {
     case Transaction(article) =>
       val price = prices(article)
-      sender ! createReceipt(price)
-      revenue += price
+      val requester = sender
+      (printer ? PrintJob(price)).map((requester, _)).pipeTo(self)
+
+    case (requester: ActorRef, receipt: Receipt) =>
+      revenue += receipt.amount
       log.info(s"Revenue incremented to $revenue cents")
+      requester ! receipt
   }
+}
+
+class ReceiptPrinter extends Actor with ActorLogging {
+  import Barista._
+  import ReceiptPrinter._
+
+  var paperJam = false
 
   def createReceipt(price: Int): Receipt = {
     import util.Random
-    if (Random.nextBoolean()) {
+    if (Random.nextBoolean()) paperJam = true
+    if (paperJam) {
       throw new PaperJamException("OMG, not again!")
     }
     Receipt(price)
+  }
+
+  override def postRestart(reason: Throwable): Unit = {
+    super.postRestart(reason)
+    log.info(s"Restarted, paper jam == $paperJam")
+  }
+
+  def receive: PartialFunction[Any, Unit] = {
+    case PrintJob(amount) =>
+      sender ! createReceipt(amount)
   }
 }
 
@@ -95,6 +128,8 @@ class CafeCustomer(coffeeSource: ActorRef) extends Actor with ActorLogging {
       coffeeSource ! EspressoRequest
     case (EspressoCup(Filled), Receipt(amount)) =>
       log.info(s"yay, caffeine for ${self}!")
+    case ComeBackLater =>
+      log.info("grumble, grumble")
   }
 }
 
@@ -109,6 +144,6 @@ object CoffeeHouse extends App {
   customerAlina ! CaffeineWithdrawalWarning
   customerJohnny ! CaffeineWithdrawalWarning
 
-  Thread.sleep(7000)
-  system.shutdown()
+  Thread.sleep(10000)
+  barista ! ClosingTime
 }
