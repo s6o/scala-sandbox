@@ -1,5 +1,6 @@
 import CafeCustomer.CaffeineWithdrawalWarning
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import akka.actor.SupervisorStrategy.{Directive, Resume}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, OneForOneStrategy, Props, SupervisorStrategy}
 
 object Barista {
   case object EspressoRequest
@@ -40,6 +41,13 @@ class Barista extends Actor {
   implicit val timeout = Timeout(2.seconds)
   val register = context.actorOf(Props[Register], "Register")
 
+  val decider: PartialFunction[Throwable, Directive] = {
+    case _: PaperJamException => Resume
+  }
+
+  override def supervisorStrategy: SupervisorStrategy =
+    OneForOneStrategy()(decider.orElse(SupervisorStrategy.defaultStrategy.decider))
+
   def receive: PartialFunction[Any, Unit] = {
     case EspressoRequest =>
       val receipt = register ? Transaction(Espresso)
@@ -57,7 +65,7 @@ class Register extends Actor with ActorLogging {
 
   override def postRestart(reason: Throwable): Unit = {
     super.postRestart(reason)
-    log.info(s"Restarted because of ${reason.getMessage}")
+    log.info(s"Restarted, and revenue is $revenue cents")
   }
 
   def receive: PartialFunction[Any, Unit] = {
@@ -65,6 +73,7 @@ class Register extends Actor with ActorLogging {
       val price = prices(article)
       sender ! createReceipt(price)
       revenue += price
+      log.info(s"Revenue incremented to $revenue cents")
   }
 
   def createReceipt(price: Int): Receipt = {
